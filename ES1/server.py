@@ -8,7 +8,7 @@ class Game(object):
 	def __init__(self):
 		super(Game, self).__init__()
 		self.deck = Deck().shuffle()
-		self.players = [ Player(input("Nome do Jogador: ")) for i in range(self.START_PLAYERS_LEN) ]
+		self.players = [ Player() for i in range(self.START_PLAYERS_LEN) ]
 		self.dealCards()
 
 	def dealCards(self):

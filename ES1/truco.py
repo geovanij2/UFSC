@@ -68,11 +68,9 @@ class Deck(deque):
 		random.shuffle(self)
 		return self
 
-	def selectJoker(self):
-		if self.count(28):
-			joker = self.pop()
-			joker.isJoker = True
-			return joker
+	def get_turned_card(self):
+		turned_card = self.pop()	
+		return turned_card
 
 
 
@@ -86,20 +84,31 @@ class Player(object):
 		self.hand.extend(cards)
 
 	def playCard(self, card):
-		suit = Card.SUITS[suit]
 		for i, c in enumerate(self.hand):
-			if c.rank == rank and c.suit == suit:
+			if c is card:
 				return self.hand.pop(i)
-			else:
-				return "ERROR:Player doesn't have this card"
 
 	def __repr__(self):
 		return str(self.hand)
 
-d = Deck()
-print(d[10] >= d[0])
 
+		
 '''
+d = Deck()
+p = Player()
+for _ in range(3):
+	p.hand.append(d.popleft())
+print('------DECK------')
+for i in d:
+	print(i)
+print('------HAND-------')
+print(p.hand)
+print("----teste-----")
+print(p.playCard(p.hand[0]))
+print('------HAND-------')
+print(p.hand)
+
+
 g = Game()
 for i in g.players:
 	print(i)
