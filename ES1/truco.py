@@ -81,20 +81,28 @@ class Player(object):
 	def __init__(self):
 		super(Player, self).__init__()
 		self.hand = []
+		self.turn = False
 
 	def setHand(self, cards):
 		self.hand.extend(cards)
 
 	def playCard(self, card):
-		suit = Card.SUITS[suit]
 		for i, c in enumerate(self.hand):
-			if c.rank == rank and c.suit == suit:
+			if c is card:
 				return self.hand.pop(i)
-			else:
-				return "ERROR:Player doesn't have this card"
+		
 
 	def __repr__(self):
 		return str(self.hand)
+
+class Pair(object):
+
+	def __init__(self, player1, player2):
+		self.player1 = player1
+		self.player2 = player2
+		self.pair_score = 0
+		self.won = False
+	
 
 d = Deck()
 print(d[10] >= d[0])
