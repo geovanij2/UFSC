@@ -79,6 +79,7 @@ class Player(object):
 	def __init__(self):
 		super(Player, self).__init__()
 		self.hand = []
+		self.turn = False
 
 	def setHand(self, cards):
 		self.hand.extend(cards)
@@ -91,27 +92,10 @@ class Player(object):
 	def __repr__(self):
 		return str(self.hand)
 
+class Pair(object):
 
-		
-'''
-d = Deck()
-p = Player()
-for _ in range(3):
-	p.hand.append(d.popleft())
-print('------DECK------')
-for i in d:
-	print(i)
-print('------HAND-------')
-print(p.hand)
-print("----teste-----")
-print(p.playCard(p.hand[0]))
-print('------HAND-------')
-print(p.hand)
-
-
-g = Game()
-for i in g.players:
-	print(i)
-	i.playCard(input("rank: "), input("suit: "))
-	print(i)
-'''
+	def __init__(self, player1, player2):
+		self.player1 = player1
+		self.player2 = player2
+		self.pair_score = 0
+		self.won = False
