@@ -80,6 +80,8 @@ class Player(object):
 		super(Player, self).__init__()
 		self.hand = []
 		self.turn = False
+		self.score = 0
+		self.won = False
 
 	def setHand(self, cards):
 		self.hand.extend(cards)
