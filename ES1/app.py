@@ -1,5 +1,5 @@
 import pygame
-import trucoGame
+import TrucoGame
 from time import sleep
 
 class App():
@@ -16,14 +16,14 @@ class App():
 
 		self.init_graphics()
 
-		#self.truco_game = trucoGame()
+		self.truco_game = TrucoGame()
 
 	def init_graphics(self):
 
 		card_names = [suit + rank for suit in 'DSHC' for rank in '4567QJK123']
 		self.image_dict = {}
 		for card in card_names:
-			self.image_dict[card] = pygame.image.load(card+'.gif')
+			self.image_dict[card] = pygame.image.load(card+'.gif').convert()
 
 	def draw_board(self):
 		pass
@@ -35,7 +35,7 @@ class App():
 
 	def update(self):
 
-		self.screen.fill((0,255,0))
+		self.screen.fill((0,63,0))
 		pygame.display.flip()
 
 

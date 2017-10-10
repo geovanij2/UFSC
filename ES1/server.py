@@ -16,7 +16,7 @@ class ClientChannel(PodSixNet.Channel.Channel):
 	def Close(self):
 		self._server.close()
 
-class BoxesServer(PodSixNet.Server.Server):
+class TrucoServer(PodSixNet.Server.Server):
 
 	def __init__(self, *args, **kwargs):
 		PodSixNet.Server.Server.__init__(self, *args, **kwargs)
@@ -42,7 +42,26 @@ class BoxesServer(PodSixNet.Server.Server):
 
 	def tick(self):
 		if len(self.game.table_cards) == 4:
+			index = self.game.get_strongest_card_index()
+			if index == 0 or index == 2:
+				self.game.pair1_rounds += 1
+			else:
+				self.game.pair2_rounds += 1
+
+			self.game.deck.extend(self.game.table_cards)
+			self.game.deck = []
+			self.game.turn = index
 			
+			if self.game.pair1_rounds == 2:
+				self.game.players_list[0].Send({"action": "win"})
+				self.game.players_list[2].Send({"action": "win"})
+				self.game.players_list[1].Send({"action": "lose"})
+				self.game.players_list[3].Send({"action": "lose"})
+			elif self.game.pair2_rounds == 2:
+				self.game.players_list[1].Send({"action": "win"})
+				self.game.players_list[3].Send({"action": "win"})
+				self.game.players_list[0].Send({"action": "lose"})
+				self.game.players_list[2].Send({"action": "lose"})
 		else:
 			self.Pump()
 
@@ -84,3 +103,5 @@ class Game:
 	def start_game(self):
 		for i, p in enumerate(self.players_list):
 			p.Send({"action": "startgame", "player": i})
+
+

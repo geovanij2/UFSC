@@ -8,10 +8,6 @@ class TrucoGame():
 		self.me = truco.Player()
 		self.board_cards = []
 		self.turned_card = None
-		
-
-
-		self.gameID = None
 		self.num = None
 
 

@@ -94,6 +94,7 @@ class Player(object):
 	def __repr__(self):
 		return str(self.hand)
 
+"""
 class Pair(object):
 
 	def __init__(self, player1, player2):
@@ -101,3 +102,4 @@ class Pair(object):
 		self.player2 = player2
 		self.pair_score = 0
 		self.won = False
+"""
