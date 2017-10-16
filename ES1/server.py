@@ -41,29 +41,29 @@ class TrucoServer(PodSixNet.Server.Server):
 		pass
 
 	def tick(self):
-		if len(self.game.table_cards) == 4:
-			index = self.game.get_strongest_card_index()
-			if index == 0 or index == 2:
-				self.game.pair1_rounds += 1
-			else:
-				self.game.pair2_rounds += 1
+		if self.game != None:
+			if len(self.game.table_cards) == 4:
+				index = self.game.get_strongest_card_index()
+				if index == 0 or index == 2:
+					self.game.pair1_rounds += 1
+				else:
+					self.game.pair2_rounds += 1
 
-			self.game.deck.extend(self.game.table_cards)
-			self.game.deck = []
-			self.game.turn = index
-			
-			if self.game.pair1_rounds == 2:
-				self.game.players_list[0].Send({"action": "win"})
-				self.game.players_list[2].Send({"action": "win"})
-				self.game.players_list[1].Send({"action": "lose"})
-				self.game.players_list[3].Send({"action": "lose"})
-			elif self.game.pair2_rounds == 2:
-				self.game.players_list[1].Send({"action": "win"})
-				self.game.players_list[3].Send({"action": "win"})
-				self.game.players_list[0].Send({"action": "lose"})
-				self.game.players_list[2].Send({"action": "lose"})
-		else:
-			self.Pump()
+				self.game.deck.extend(self.game.table_cards)
+				self.game.deck = []
+				self.game.turn = index
+				
+				if self.game.pair1_rounds == 2:
+					self.game.players_list[0].Send({"action": "win"})
+					self.game.players_list[2].Send({"action": "win"})
+					self.game.players_list[1].Send({"action": "lose"})
+					self.game.players_list[3].Send({"action": "lose"})
+				elif self.game.pair2_rounds == 2:
+					self.game.players_list[1].Send({"action": "win"})
+					self.game.players_list[3].Send({"action": "win"})
+					self.game.players_list[0].Send({"action": "lose"})
+					self.game.players_list[2].Send({"action": "lose"})
+		self.Pump()
 
 	def close(self):
 		pass
@@ -80,7 +80,7 @@ class Game:
 		self.player_sequence = []
 		self.table_cards = []
 		self.players_list = [player0]
-		self.deck = Deck().shuffle()
+		self.deck = truco.Deck().shuffle()
 
 
 	def dealCards(self):
@@ -105,3 +105,8 @@ class Game:
 			p.Send({"action": "startgame", "player": i})
 
 
+print('STARTING SERVER ON LOCALHOST')
+truco_server = TrucoServer()
+while True:
+	truco_server.Pump()
+	sleep(0.01)

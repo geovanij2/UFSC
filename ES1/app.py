@@ -1,5 +1,5 @@
 import pygame
-import TrucoGame
+import Client
 from time import sleep
 
 class App():
@@ -16,7 +16,7 @@ class App():
 
 		self.init_graphics()
 
-		self.truco_game = TrucoGame()
+		self.truco_game = Client.Client()
 
 	def init_graphics(self):
 
@@ -35,6 +35,11 @@ class App():
 
 	def update(self):
 
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				exit()
+			print(pygame.QUIT)
+
 		self.screen.fill((0,63,0))
 		pygame.display.flip()
 
@@ -42,4 +47,3 @@ class App():
 a = App()
 while True:
 	a.update()
-	sleep(0.1)
