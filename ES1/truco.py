@@ -8,11 +8,19 @@ RANKS = '4567QJK123'
 
 class Card(object):
 
-	def __init__(self, rank, suit):
+	def __init__(self, rank, suit, isJoker=False):
 		super(Card, self).__init__()
 		self.rank = rank
 		self.suit = suit
-		self.isJoker = False
+		self.isJoker = isJoker
+
+	def greater_by_one_rank(self, other):
+		for i, r in enumerate(RANKS):
+			if r == self.rank:
+				a_power = i
+			if r == other.rank:
+				b_power = i
+		return a_power - b_power == 1
 
 	def __str__(self):
 		return "%s%s" % (self.rank, self.suit)

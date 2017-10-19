@@ -84,9 +84,18 @@ class Game:
 
 
 	def dealCards(self):
-		for i in self.players_list:
+		self.turned_card = self.deck.pop()
+		for i, p in enumerate(self.players_list):
 			cards = [ self.deck.pop() for j in range(self.START_CARDS_LEN) ]
-			i.Send({"action":"deal_cards", "cards": cards})
+			self.set_to_joker(cards)
+			# Encontrar maneira de enviar a carta, aparentemente não é possivel enviar objetos com o Send
+			# usar .__dict__
+			p.Send({"action":"dealCards", "cards": [1,2,3], "turned_card": self.turned_card.__dict__, "player": i})
+	
+	def set_to_joker(self, cards):
+		for card in cards:
+			if card.greater_by_one_rank(self.turned_card):
+				card.isJoker = True
 
 	def get_strongest_card_index(self):
 		index = 0
@@ -97,12 +106,17 @@ class Game:
 				index = i
 		return index
 
+	def prepare_to_send(self, cards):
+		keys = ['card1', 'card2', 'card3']
+		return dict(zip(keys, cards))
+
 	def play_card(self):
 		pass
 
 	def start_game(self):
 		for i, p in enumerate(self.players_list):
 			p.Send({"action": "startgame", "player": i})
+		self.dealCards()
 
 
 print('STARTING SERVER ON LOCALHOST')
