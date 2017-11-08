@@ -94,10 +94,8 @@ class Player(object):
 	def setHand(self, cards):
 		self.hand.extend(cards)
 
-	def playCard(self, card):
-		for i, c in enumerate(self.hand):
-			if c is card:
-				return self.hand.pop(i)
+	def playCard(self, card_index):
+		return self.hand.pop(card_index)
 
 	def __repr__(self):
 		return str(self.hand)

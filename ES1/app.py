@@ -16,7 +16,7 @@ class App():
 
 		self.init_graphics()
 
-		self.truco_game = Client.Client()
+		#self.truco_game = Client.Client()
 
 	def init_graphics(self):
 
