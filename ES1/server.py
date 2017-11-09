@@ -173,7 +173,8 @@ class Game:
 				self.deck.append(card)
 
 		self.played_cards += 1
-		self.turn = (self.turn + 1) % 4  
+		self.turn = (self.turn + 1) % 4
+		self.send_yourturn_message()  
 
 	def pair1_wins(self):
 		self.players_list[0].Send({"action": "win"})
@@ -196,6 +197,7 @@ class Game:
 		self.winning_card = None
 		self.winning_player = None
 		self.drawing = False
+		self.send_yourturn_message()
 
 	def prepare_for_next_hand(self):
 		self.hand_starting_player = (self.hand_starting_player + 1) % 4
@@ -207,17 +209,25 @@ class Game:
 		self.winning_player = None
 		self.drawing = False
 		self.played_cards = 0
+		self.send_yourturn_message()
 
 	def send_card_to_other_players(self, card_dict, player):
 		for i, p in enumerate(self.players_list):
 			if i != player:
 				p.Send({"action": "receive_board_card", "card": card_dict})
 
+	def send_yourturn_message(self):
+		for i, p in enumerate(self.players_list):
+			if i == self.turn:
+				p.Send({"action": "yourturn", "torf": True})
+			else:
+				p.Send({"action": "yourturn", "torf": False})
 
 	def start_game(self): 
 		for i, p in enumerate(self.players_list):
 			p.Send({"action": "startgame", "player": i})
 		self.dealCards()
+		self.send_yourturn_message()
 
 
 print('STARTING SERVER ON LOCALHOST')

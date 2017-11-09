@@ -14,9 +14,9 @@ class Client(ConnectionListener):
 
 		print('conectando')
 		self.Connect()
+		"""
 		while True:
-			connection.Pump()
-			self.Pump()
+			self.read_network()
 			if self.running:
 				if self.received_cards:
 					print("CARTAS: 	")
@@ -24,6 +24,7 @@ class Client(ConnectionListener):
 					print("CARTA QUE VIROU: ")
 					print(self.turned_card)
 					self.running = False
+		"""
 
 	def Network_startgame(self, data):
 		self.running = True
@@ -34,6 +35,9 @@ class Client(ConnectionListener):
 
 	def Network_lose(self, data):
 		pass
+
+	def Network_yourturn(self, data):
+		self.me.turn = data["torf"]
 
 	def Network_receive_board_card(self, data):
 		card = truco.Card(data["card"]["rank"], data["card"]["suit"], data["card"]["isJoker"])
@@ -49,6 +53,10 @@ class Client(ConnectionListener):
 	def prepare_received_cards(self, cards):
 		l = [ truco.Card(i["rank"], i["suit"], i["isJoker"]) for i in cards ] 
 		return l
+
+	def read_network(self):
+		connection.Pump()
+		self.Pump()
 
 	def play_card(self, card_index):
 		if self.me.turn:
