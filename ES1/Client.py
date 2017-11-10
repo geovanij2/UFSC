@@ -6,8 +6,8 @@ class Client(ConnectionListener):
 	def __init__(self):
 
 		self.me = truco.Player()
-		self.players_number_of_cards = {0: 0, 1:0, 2: 0, 3: 0}
-		self.board_cards = []
+		self.players_number_of_cards = {0: 0, 1: 0, 2: 0, 3: 0}
+		self.board_cards = {}
 		self.turned_card = None
 		self.num = None
 		self.running = False
@@ -42,10 +42,20 @@ class Client(ConnectionListener):
 	def Network_yourturn(self, data):
 		self.me.turn = data["torf"]
 
+	def Network_prepare_for_next_round(self, data):
+		self.board_cards = {}
+
+	def Network_prepare_for_next_hand(self, data):
+		self.board_cards = {}
+		self.turned_card = None
+		for card in self.me.hand:
+			connection.Send({"action": "retrieve_card", "card": card.__dict__})
+		self.me.hand = []
+
 	def Network_receive_board_card(self, data):
 		card = truco.Card(data["card"]["rank"], data["card"]["suit"], data["card"]["isJoker"])
 		self.players_number_of_cards[data["player"]] -= 1
-		self.board_cards.append(card)
+		self.board_cards[data["player"]] = card
 
 	def Network_dealCards(self, data):
 		if data["player"] == self.num:
@@ -66,7 +76,7 @@ class Client(ConnectionListener):
 		if self.me.turn and self.just_placed <= 0:
 			self.me.turn = False
 			card = self.me.playCard(card_index)
-			self.board_cards.append(card)
+			self.board_cards[self.num] = card
 			connection.Send({"action": "play_card", "card": card.__dict__, "player": self.num})
 
 if __name__ == "__main__":

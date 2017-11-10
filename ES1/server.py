@@ -15,6 +15,10 @@ class ClientChannel(PodSixNet.Channel.Channel):
 		player = data["player"]
 		self._server.play_card(card_dict, player)
 
+	def Network_retrieve_card(self, data):
+		card_dict = data["card"]
+		self._server.retrieve_card(card_dict)
+
 	def Close(self):
 		self._server.close()
 
@@ -39,6 +43,13 @@ class TrucoServer(PodSixNet.Server.Server):
 
 		self.currentIndex += 1
 
+	def retrieve_card(self, card_dict):
+		card = self.game.prepare_card(card_dict)
+		self.game.clear_card(card)
+		self.game.deck.append(card)
+		if len(self.game.deck) == 40:
+			self.game.dealCards()
+
 	def play_card(self, card_dict, player):
 		self.game.send_card_to_other_players(card_dict, player)
 		card = self.game.prepare_card(card_dict)
@@ -61,11 +72,11 @@ class TrucoServer(PodSixNet.Server.Server):
 				self.game.prepare_for_next_round()
 				self.game.done_round1 = True
 			# segunda rodada
-			if self.game.played_cards == 8:
+			if self.game.played_cards == 8 and not self.game.done_round2:
 				if not self.game.drawing:
 					if self.game.winning_player == 0 or self.game.winning_player == 2:
 						self.game.pair1_rounds += 1
-					else:
+					elif self.game.winning_player == 1 or self.winning_player == 3:
 						self.game.pair2_rounds += 1
 				else:
 					if self.game.pair1_rounds > self.game.pair2_rounds:
@@ -80,7 +91,8 @@ class TrucoServer(PodSixNet.Server.Server):
 					self.game.pair1_wins()
 				elif self.game.pair2_rounds == 2:
 					self.game.pair2_wins()
-			
+
+				self.game.done_round2 = True
 			# terceira rodada
 			if self.game.played_cards == 12:
 				if not self.game.drawing:
@@ -111,6 +123,7 @@ class Game:
 		self.pair2_rounds = 0
 
 		self.done_round1 = False
+		self.done_round2 = False
 
 		self.turned_card = None
 		self.winning_player = None
@@ -119,17 +132,20 @@ class Game:
 		self.drawing = False
 
 		self.players_list = [player0]
-		self.deck = truco.Deck().shuffle()
+		self.deck = truco.Deck()
 
 
 	def dealCards(self):
+		print("NUMERO DO CARTAS NO BARALHO: ", len(self.deck))
+		self.deck.shuffle()
 		self.turned_card = self.deck.pop()
 		for i, p in enumerate(self.players_list):
 			cards = [ self.deck.pop() for j in range(self.START_CARDS_LEN) ]
 			self.set_to_joker(cards)
 			cards_dict = self.prepare_to_send(cards)
 			p.Send({"action":"dealCards", "cards": cards_dict, "turned_card": self.turned_card.__dict__, "player": i})
-	
+		print("NUMERO DO CARTAS NO BARALHO: ", len(self.deck))
+
 	def set_to_joker(self, cards):
 		for card in cards:
 			if card.greater_by_one_rank(self.turned_card):
@@ -166,15 +182,14 @@ class Game:
 				self.winning_card = card
 				self.winning_player = player
 				self.drawing = False
-			if card == self.winning_card:
+			elif card == self.winning_card:
 				self.deck.append(self.winning_card)
 				self.winning_card = card
 				self.winning_player = player
 				self.drawing = True
-			else:
+			elif self.winning_card > card:
 				self.deck.append(card)
 
-		print(self.winning_card)
 		self.played_cards += 1
 		self.turn = (self.turn + 1) % 4
 		self.send_yourturn_message()  
@@ -200,6 +215,7 @@ class Game:
 		self.winning_card = None
 		self.winning_player = None
 		self.drawing = False
+		self.send_prepare_for_next_round_msg()
 		self.send_yourturn_message()
 
 	def prepare_for_next_hand(self):
@@ -213,7 +229,19 @@ class Game:
 		self.drawing = False
 		self.played_cards = 0
 		self.done_round1 = False
+		self.done_round2 = False
+		self.send_prepare_for_next_hand_msg()
+		if len(self.deck) == 40:
+			self.dealCards()
 		self.send_yourturn_message()
+
+	def send_prepare_for_next_round_msg(self):
+		for p in self.players_list:
+			p.Send({"action": "prepare_for_next_round"})
+
+	def send_prepare_for_next_hand_msg(self):
+		for p in self.players_list:
+			p.Send({"action": "prepare_for_next_hand"})
 
 	def send_card_to_other_players(self, card_dict, player):
 		for i, p in enumerate(self.players_list):

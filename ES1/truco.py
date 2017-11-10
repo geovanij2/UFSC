@@ -20,7 +20,7 @@ class Card(object):
 				a_power = i
 			if r == other.rank:
 				b_power = i
-		return a_power - b_power == 1
+		return (a_power - b_power == 1) or (self.rank == "4" and other.rank == "3")
 
 	def __str__(self):
 		return "%s%s" % (self.rank, self.suit)
