@@ -48,7 +48,7 @@ class TrucoServer(PodSixNet.Server.Server):
 		if self.game != None:
 
 			# primeira rodada
-			if self.game.played_cards == 4:
+			if self.game.played_cards == 4 and not self.game.done_round1:
 				if not self.game.drawing:
 					if self.game.winning_player == 0 or self.game.winning_player == 2:
 						self.game.pair1_rounds += 1
@@ -58,8 +58,8 @@ class TrucoServer(PodSixNet.Server.Server):
 					self.game.pair1_rounds += 1
 					self.game.pair2_rounds += 1
 
-			self.game.prepare_for_next_round()
-
+				self.game.prepare_for_next_round()
+				self.game.done_round1 = True
 			# segunda rodada
 			if self.game.played_cards == 8:
 				if not self.game.drawing:
@@ -105,10 +105,12 @@ class Game:
 
 	def __init__(self, player0):
 		self.turn = 0
-		self.hand_starting_player: 0
+		self.hand_starting_player = 0
 
 		self.pair1_rounds = 0
 		self.pair2_rounds = 0
+
+		self.done_round1 = False
 
 		self.turned_card = None
 		self.winning_player = None
@@ -154,7 +156,7 @@ class Game:
 		card.isJoker = False
 
 	def play_card(self, card, player):
-		if self.winning_card == None:
+		if self.winning_card is None:
 			self.winning_card = card
 			self.winning_player = player
 		else:
@@ -172,6 +174,7 @@ class Game:
 			else:
 				self.deck.append(card)
 
+		print(self.winning_card)
 		self.played_cards += 1
 		self.turn = (self.turn + 1) % 4
 		self.send_yourturn_message()  
@@ -209,12 +212,13 @@ class Game:
 		self.winning_player = None
 		self.drawing = False
 		self.played_cards = 0
+		self.done_round1 = False
 		self.send_yourturn_message()
 
 	def send_card_to_other_players(self, card_dict, player):
 		for i, p in enumerate(self.players_list):
 			if i != player:
-				p.Send({"action": "receive_board_card", "card": card_dict})
+				p.Send({"action": "receive_board_card", "card": card_dict, "player": player})
 
 	def send_yourturn_message(self):
 		for i, p in enumerate(self.players_list):
@@ -233,5 +237,5 @@ class Game:
 print('STARTING SERVER ON LOCALHOST')
 truco_server = TrucoServer()
 while True:
-	truco_server.Pump()
+	truco_server.tick()
 	sleep(0.01)
