@@ -59,6 +59,7 @@ class Client(ConnectionListener):
 		self.team_mate_cards = []
 		self.just_asked = False
 		self.turned_card = None
+		self.team_mate_asked_truco = False
 		self.number_of_trucos_asked = 0
 		for card in self.me.hand:
 			connection.Send({"action": "retrieve_card", "card": card.__dict__})
