@@ -29,6 +29,8 @@ class Client(ConnectionListener):
 
 	def Network_win(self, data):
 		self.me.score += data["score"]
+		if self.me.score >= 12:
+			self.me.won = True
 
 	def Network_lose(self, data):
 		self.other_team_score += data["score"]

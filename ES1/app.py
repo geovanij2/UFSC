@@ -177,6 +177,9 @@ class App():
 
 	def update(self):
 
+		if self.truco_game.me.score >= 12 or self.truco_game.other_team_score >= 12:
+			return 1
+
 		self.truco_game.just_played -= 1
 		# pumps client and server so it looks for new events/messages
 		self.truco_game.read_network()
@@ -186,21 +189,40 @@ class App():
 		self.screen.fill((0,100,0))
 		# draw cards
 		self.draw_board()
-		# draw HUD
-		self.draw_HUD()
 		# draw truco screen
 		self.draw_truco_asked_screen()
+		# draw HUD
+		self.draw_HUD()
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				exit()
-
-		mouse = pygame.mouse.get_pos()
 		
 		# update the screen
 		pygame.display.flip()
 
+	def finished(self):
+		if self.truco_game.me.won:
+			self.screen.fill((0,100,0))
+			msg = "Você venceu!"
+		else:
+			self.screen.fill((100,0,0))
+			msg = "Você perdeu!"
+
+		my_font = pygame.font.SysFont(None, 64)
+		text_surf, text_rect = self.text_objects(msg, my_font)
+		text_rect.center = (400,300)
+		self.screen.blit(text_surf, text_rect)
+		while True:
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					exit()
+			pygame.display.flip()
+
+
 
 a = App()
 while True:
-	a.update()
+	if a.update() == 1:
+		break
+a.finished()
