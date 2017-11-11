@@ -14,6 +14,8 @@ class App():
 		self.black = (0,0,0)
 		self.white = (255, 255, 255)
 		self.bg_green = (0,100,0)
+		self.blue = (0,255,0)
+		self.inactive_blue = (0,180,0)
 		self.light_blue = (29,231,241)
 		self.light_grey = (192,192,192)
 		self.dark_grey = (140,140,140)
@@ -41,25 +43,42 @@ class App():
 
 	def draw_board(self):
 
-		turned_card = self.truco_game.turned_card
-		# my hand
-		for i, card in enumerate(self.truco_game.me.hand):
-			self.card_button(i*80 + 285, 475, self.card_width, self.card_height, self.light_blue, self.image_dict[card.suit + card.rank], i)
-
 		if self.truco_game.running:
+
+			player = self.truco_game.num
+			turned_card = self.truco_game.turned_card
+
+			team_mate_card = self.truco_game.get_board_card((player+2)%4)
+			right_player_card = self.truco_game.get_board_card((player+1)%4)
+			left_player_card = self.truco_game.get_board_card((player+3)%4)
+			my_card = self.truco_game.get_board_card(player)
+
+			# my hand
+			for i, card in enumerate(self.truco_game.me.hand):
+				self.card_button(i*80 + 285, 494, self.card_width, self.card_height, self.light_blue, self.image_dict[card.suit + card.rank], i)
+
 			# oposite players hand
 			for i in range(self.truco_game.players_number_of_cards[(self.truco_game.num+2)%4]):
-				self.screen.blit(self.faced_down_card, (i*80 + 285, 29))
+				self.screen.blit(self.faced_down_card, (i*80 + 285, 10))
 			# player to the right
 			for i in range(self.truco_game.players_number_of_cards[(self.truco_game.num+1)%4]):
-				self.screen.blit(self.hor_faced_down_card, (675, i*80 +185))
+				self.screen.blit(self.hor_faced_down_card, (694, i*80 +185))
 			# player to the left
 			for i in range(self.truco_game.players_number_of_cards[(self.truco_game.num+3)%4]):
-				self.screen.blit(self.hor_faced_down_card, (29, i*80 + 185))
+				self.screen.blit(self.hor_faced_down_card, (10, i*80 + 185))
+			# draws thrown cards
+			if team_mate_card is not None:
+				self.screen.blit(self.image_dict[team_mate_card.suit + team_mate_card.rank], (365, 120))
+			if right_player_card is not None:
+				self.screen.blit(self.image_dict[right_player_card.suit + right_player_card.rank], (550, 250))
+			if left_player_card is not None:
+				self.screen.blit(self.image_dict[left_player_card.suit + left_player_card.rank], (180, 250))
+			if my_card is not None:
+				self.screen.blit(self.image_dict[my_card.suit + my_card.rank], (365, 384))
 
-		if turned_card is not None:
-			self.screen.blit(self.image_dict[turned_card.suit + turned_card.rank], (405, 250))
-		self.screen.blit(self.faced_down_card, (325, 250))
+			if turned_card is not None:
+				self.screen.blit(self.image_dict[turned_card.suit + turned_card.rank], (405, 250))
+			self.screen.blit(self.faced_down_card, (325, 250))
 
 
 	def draw_HUD(self):
@@ -115,14 +134,49 @@ class App():
 
 	def draw_truco_asked_screen(self):
 		if self.truco_game.truco_asked:
-			self.screen.fill(self.white)
+			player = self.truco_game.num
+			turned_card = self.truco_game.turned_card
+
+			team_mate_card = self.truco_game.get_board_card((player+2)%4)
+			right_player_card = self.truco_game.get_board_card((player+1)%4)
+			left_player_card = self.truco_game.get_board_card((player+3)%4)
+			my_card = self.truco_game.get_board_card(player)
+
+			# my hand
+			for i, card in enumerate(self.truco_game.me.hand):
+				self.card_button(i*80 + 285, 494, self.card_width, self.card_height, self.light_blue, self.image_dict[card.suit + card.rank], i)
+			# oposite players hand
+			for i, card in enumerate(self.truco_game.team_mate_cards):
+				self.screen.blit(self.image_dict[card.suit + card.rank], (i*80 + 285, 10))
+			# player to the right
+			for i in range(self.truco_game.players_number_of_cards[(self.truco_game.num+1)%4]):
+				self.screen.blit(self.hor_faced_down_card, (694, i*80 +185))
+			# player to the left
+			for i in range(self.truco_game.players_number_of_cards[(self.truco_game.num+3)%4]):
+				self.screen.blit(self.hor_faced_down_card, (10, i*80 + 185))
+			# draws thrown cards
+			if team_mate_card is not None:
+				self.screen.blit(self.image_dict[team_mate_card.suit + team_mate_card.rank], (365, 120))
+			if right_player_card is not None:
+				self.screen.blit(self.image_dict[right_player_card.suit + right_player_card.rank], (550, 250))
+			if left_player_card is not None:
+				self.screen.blit(self.image_dict[left_player_card.suit + left_player_card.rank], (180, 250))
+			if my_card is not None:
+				self.screen.blit(self.image_dict[my_card.suit + my_card.rank], (365, 384))
+
+			if turned_card is not None:
+				self.screen.blit(self.image_dict[turned_card.suit + turned_card.rank], (405, 250))
+			self.screen.blit(self.faced_down_card, (325, 250))
+
+			self.button("Cai!", 10, 530, 100, 60, self.inactive_blue, self.blue, self.truco_game.accept_truco)
+			self.button("Correr", 130, 530, 100, 60, self.dark_grey, self.light_grey, self.truco_game.refuse_truco)
 
 	def print_test(self):
 		print("teste")	
 
 	def update(self):
 
-		self.truco_game.just_placed -= 1
+		self.truco_game.just_played -= 1
 		# pumps client and server so it looks for new events/messages
 		self.truco_game.read_network()
 		# 60 FPS

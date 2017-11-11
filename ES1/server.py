@@ -23,6 +23,19 @@ class ClientChannel(PodSixNet.Channel.Channel):
 		player = data["player"]
 		self._server.ask_truco(player)
 
+	def Network_accept_truco(self, data):
+		player = data["player"]
+		self._server.accept_truco(player)
+
+	def Network_refuse_truco(self, data):
+		player = data["player"]
+		self._server.refuse_truco(player)
+
+	def Network_show_team_mate(self, data):
+		cards_dict = data["cards"]
+		player = data["player"]
+		self._server.show_team_mate(cards_dict, player)
+
 	def Close(self):
 		self._server.close()
 
@@ -50,6 +63,15 @@ class TrucoServer(PodSixNet.Server.Server):
 	def ask_truco(self, player):
 		self.game.ask_truco(player)
 
+	def accept_truco(self, player):
+		self.game.truco_response_dict[player] = True
+
+	def refuse_truco(self, player):
+		self.game.truco_response_dict[player] = False
+
+	def show_team_mate(self,cards_dict, player):
+		self.game.show_team_mate(cards_dict, player)
+
 	def retrieve_card(self, card_dict):
 		card = self.game.prepare_card(card_dict)
 		self.game.clear_card(card)
@@ -65,6 +87,7 @@ class TrucoServer(PodSixNet.Server.Server):
 	def tick(self):
 		if self.game != None:
 
+			self.game.check_for_truco()
 			# primeira rodada
 			if self.game.played_cards == 4 and not self.game.done_round1:
 				if not self.game.drawing:
@@ -87,7 +110,7 @@ class TrucoServer(PodSixNet.Server.Server):
 				if not self.game.drawing:
 					if self.game.winning_player == 0 or self.game.winning_player == 2:
 						self.game.pair1_rounds += 1
-					elif self.game.winning_player == 1 or self.winning_player == 3:
+					elif self.game.winning_player == 1 or self.game.winning_player == 3:
 						self.game.pair2_rounds += 1
 				else:
 					if self.game.pair1_rounds > self.game.pair2_rounds:
@@ -150,6 +173,11 @@ class Game:
 		self.winning_card = None
 		self.played_cards = 0
 		self.drawing = False
+
+		self.score_multiplier = 0
+		self.truco_asked = False
+		self.truco_asking_player = None
+		self.truco_response_dict = {}
 
 		self.players_list = [player0]
 		self.deck = truco.Deck()
@@ -216,22 +244,57 @@ class Game:
 		self.turn = (self.turn + 1) % 4
 		self.send_yourturn_message()
 
+	def check_for_truco(self):
+		if self.truco_asked and len(self.truco_response_dict) == 2:
+			if self.truco_asking_player == 0 or self.truco_asking_player == 2:
+				if not self.truco_response_dict[1] and not self.truco_response_dict[3]:
+					print("cheguei aqui")
+					self.pair1_wins()
+				else:
+					self.score_multiplier += 1
+
+			elif self.truco_asking_player == 1 or self.ruco_asking_player == 3:
+				if not self.truco_response_dict[0] or truco_response_dict[2]:
+					print("cheguei aqui")
+					self.pair2_wins()
+				else:
+					self.score_multiplier += 1
+
+			self.truco_asking_player = None
+			self.truco_asked = False
+			self.truco_response_dict = {}
+
 	def ask_truco(self, player):
+		self.truco_asked = True
+		self.truco_asking_player = player
+		self.send_your_team_asked_truco_msg(player)
 		self.players_list[(player+1)%4].Send({"action": "truco_asked"})
-		self.players_list[(player+3)%4].Send({"action": "truco_asked"})  
+		self.players_list[(player+3)%4].Send({"action": "truco_asked"})
 
 	def pair1_wins(self):
-		self.players_list[0].Send({"action": "win"})
-		self.players_list[2].Send({"action": "win"})		
-		self.players_list[1].Send({"action": "lose"})
-		self.players_list[3].Send({"action": "lose"})
+		if self.score_multiplier == 0:
+			score = 1
+		else:
+			score = self.score_multiplier * 3
+
+		self.players_list[0].Send({"action": "win", "score": score})
+		self.players_list[2].Send({"action": "win", "score": score})		
+		self.players_list[1].Send({"action": "lose", "score": score})
+		self.players_list[3].Send({"action": "lose", "score": score})
+
 		self.prepare_for_next_hand()
 
 	def pair2_wins(self):
-		self.players_list[1].Send({"action": "win"})
-		self.players_list[3].Send({"action": "win"})		
-		self.players_list[0].Send({"action": "lose"})
-		self.players_list[2].Send({"action": "lose"})
+		if self.score_multiplier == 0:
+			score = 1
+		else:
+			score = self.score_multiplier * 3
+
+		self.players_list[1].Send({"action": "win", "score": score})
+		self.players_list[3].Send({"action": "win", "score": score})		
+		self.players_list[0].Send({"action": "lose", "score": score})
+		self.players_list[2].Send({"action": "lose", "score": score})
+
 		self.prepare_for_next_hand()
 
 	def prepare_for_next_round(self):
@@ -247,8 +310,9 @@ class Game:
 	def prepare_for_next_hand(self):
 		self.hand_starting_player = (self.hand_starting_player + 1) % 4
 		self.turn = self.hand_starting_player
-		self.clear_card(self.winning_card)
-		self.deck.append(self.winning_card)
+		if self.winning_card is not None:
+			self.clear_card(self.winning_card)
+			self.deck.append(self.winning_card)
 		self.deck.append(self.turned_card)
 		self.winning_card = None
 		self.winning_player = None
@@ -258,6 +322,7 @@ class Game:
 		self.done_round2 = False
 		self.pair1_rounds = 0
 		self.pair2_rounds = 0
+		self.score_multiplier = 0
 		self.send_prepare_for_next_hand_msg()
 		if len(self.deck) == 40:
 			self.dealCards()
@@ -282,6 +347,13 @@ class Game:
 				p.Send({"action": "yourturn", "torf": True})
 			else:
 				p.Send({"action": "yourturn", "torf": False})
+
+	def show_team_mate(self, cards_dict, player):
+		self.players_list[(player+2)%4].Send({"action": "receive_team_mate_cards", "cards": cards_dict})
+
+	def send_your_team_asked_truco_msg(self, player):
+		partner = (player+2)%4
+		self.players_list[partner].Send({"action": "your_team_mate_asked_truco"})
 
 	def start_game(self): 
 		for i, p in enumerate(self.players_list):
