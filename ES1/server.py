@@ -19,6 +19,10 @@ class ClientChannel(PodSixNet.Channel.Channel):
 		card_dict = data["card"]
 		self._server.retrieve_card(card_dict)
 
+	def Network_ask_truco(self, data):
+		player = data["player"]
+		self._server.ask_truco(player)
+
 	def Close(self):
 		self._server.close()
 
@@ -43,6 +47,9 @@ class TrucoServer(PodSixNet.Server.Server):
 
 		self.currentIndex += 1
 
+	def ask_truco(self, player):
+		self.game.ask_truco(player)
+
 	def retrieve_card(self, card_dict):
 		card = self.game.prepare_card(card_dict)
 		self.game.clear_card(card)
@@ -63,14 +70,18 @@ class TrucoServer(PodSixNet.Server.Server):
 				if not self.game.drawing:
 					if self.game.winning_player == 0 or self.game.winning_player == 2:
 						self.game.pair1_rounds += 1
+						self.game.won_first_round = 0
 					else:
 						self.game.pair2_rounds += 1
+						self.game.won_first_round = 1
 				else:
 					self.game.pair1_rounds += 1
 					self.game.pair2_rounds += 1
 
 				self.game.prepare_for_next_round()
 				self.game.done_round1 = True
+				print("TIME 1: ", self.game.pair1_rounds)
+				print("TIME 2: ", self.game.pair2_rounds)
 			# segunda rodada
 			if self.game.played_cards == 8 and not self.game.done_round2:
 				if not self.game.drawing:
@@ -93,10 +104,17 @@ class TrucoServer(PodSixNet.Server.Server):
 					self.game.pair2_wins()
 
 				self.game.done_round2 = True
+				print("TIME 1: ", self.game.pair1_rounds)
+				print("TIME 2: ", self.game.pair2_rounds)
 			# terceira rodada
 			if self.game.played_cards == 12:
 				if not self.game.drawing:
 					if self.game.winning_player == 0 or self.game.winning_player == 2:
+						self.game.pair1_rounds += 1
+					else:
+						self.game.pair2_rounds += 1
+				else:
+					if self.game.won_first_round == 0:
 						self.game.pair1_rounds += 1
 					else:
 						self.game.pair2_rounds += 1
@@ -118,6 +136,8 @@ class Game:
 	def __init__(self, player0):
 		self.turn = 0
 		self.hand_starting_player = 0
+		# 0 for pair1/ 1 for pair2
+		self.won_first_round = 0
 
 		self.pair1_rounds = 0
 		self.pair2_rounds = 0
@@ -183,16 +203,22 @@ class Game:
 				self.winning_player = player
 				self.drawing = False
 			elif card == self.winning_card:
+				if (player + 2) % 4 != self.winning_player:
+					self.drawing = True 
 				self.deck.append(self.winning_card)
 				self.winning_card = card
 				self.winning_player = player
-				self.drawing = True
 			elif self.winning_card > card:
 				self.deck.append(card)
 
+		print("JOGADOR VENCENDO: ", self.winning_player)
 		self.played_cards += 1
 		self.turn = (self.turn + 1) % 4
-		self.send_yourturn_message()  
+		self.send_yourturn_message()
+
+	def ask_truco(self, player):
+		self.players_list[(player+1)%4].Send({"action": "truco_asked"})
+		self.players_list[(player+3)%4].Send({"action": "truco_asked"})  
 
 	def pair1_wins(self):
 		self.players_list[0].Send({"action": "win"})
@@ -230,6 +256,8 @@ class Game:
 		self.played_cards = 0
 		self.done_round1 = False
 		self.done_round2 = False
+		self.pair1_rounds = 0
+		self.pair2_rounds = 0
 		self.send_prepare_for_next_hand_msg()
 		if len(self.deck) == 40:
 			self.dealCards()

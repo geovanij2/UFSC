@@ -8,10 +8,17 @@ class App():
 		
 		pygame.init()
 		pygame.font.init()
+
 		(width, height) = (800, 600)
+
+		self.black = (0,0,0)
 		self.white = (255, 255, 255)
 		self.bg_green = (0,100,0)
 		self.light_blue = (29,231,241)
+		self.light_grey = (192,192,192)
+		self.dark_grey = (140,140,140)
+
+
 		self.screen = pygame.display.set_mode((width, height))
 		pygame.display.set_caption("Truco")
 
@@ -56,21 +63,25 @@ class App():
 
 
 	def draw_HUD(self):
+
 		if self.truco_game.me.turn:
 			# create font
 			my_font_64 = pygame.font.SysFont(None, 64)
 			# create text surface
-			label = my_font_64.render("Your turn!", 1, self.white)
+			label = my_font_64.render("Sua vez!", 1, self.white)
 			# draw surface
 			self.screen.blit(label, (40,500))
+
 		if self.truco_game.running:
 			my_font_32 = pygame.font.SysFont(None, 32)
 
-			my_team_score = my_font_32.render("Your team: " + str(self.truco_game.me.score), 1, self.white)
-			other_team_score = my_font_32.render("Other team: " + str(self.truco_game.other_team_score), 1, self.white)
+			my_team_score = my_font_32.render("Nós: " + str(self.truco_game.me.score), 1, self.white)
+			other_team_score = my_font_32.render("Eles: " + str(self.truco_game.other_team_score), 1, self.white)
 
 			self.screen.blit(my_team_score, (50, 40))
 			self.screen.blit(other_team_score, (50, 70))
+
+		self.button("Trucar", 625, 515, 150, 60, self.dark_grey, self.light_grey, self.truco_game.ask_truco)
 
 	def card_button(self, x, y, width, height, color, card_image, index):
 		mouse = pygame.mouse.get_pos()
@@ -81,6 +92,33 @@ class App():
 			if click[0] == 1:
 				self.truco_game.play_card(index)
 		self.screen.blit(card_image, (x, y))
+
+	def button(self, msg, x, y, w, h, ic, ac, action=None):
+		mouse = pygame.mouse.get_pos()
+		click = pygame.mouse.get_pressed()
+
+		if x+w > mouse[0] > x and y+h > mouse[1] > y:
+			pygame.draw.rect(self.screen, ac, (x, y, w, h))
+			if click[0] == 1 and action != None:
+				action()
+		else:
+			pygame.draw.rect(self.screen, ic, (x, y, w, h))
+
+		my_font = pygame.font.SysFont(None, 32)
+		text_surf, text_rect = self.text_objects(msg, my_font)
+		text_rect.center = ((x+(w/2)), (y+(h/2)))
+		self.screen.blit(text_surf, text_rect)
+
+	def text_objects(self, text, font):
+		textSurface = font.render(text, True, self.black)
+		return textSurface, textSurface.get_rect()
+
+	def draw_truco_asked_screen(self):
+		if self.truco_game.truco_asked:
+			self.screen.fill(self.white)
+
+	def print_test(self):
+		print("teste")	
 
 	def update(self):
 
@@ -95,6 +133,8 @@ class App():
 		self.draw_board()
 		# draw HUD
 		self.draw_HUD()
+		# draw truco screen
+		self.draw_truco_asked_screen()
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:

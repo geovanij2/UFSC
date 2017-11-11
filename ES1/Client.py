@@ -12,8 +12,10 @@ class Client(ConnectionListener):
 		self.num = None
 		self.running = False
 		self.received_cards = False
+		self.truco_asked = False
 		self.other_team_score = 0
 		self.just_placed = 300
+		self.just_asked = False
 
 		print('conectando')
 		self.Connect()
@@ -41,6 +43,9 @@ class Client(ConnectionListener):
 
 	def Network_yourturn(self, data):
 		self.me.turn = data["torf"]
+
+	def Network_truco_asked(self, data):
+		self.truco_asked = True
 
 	def Network_prepare_for_next_round(self, data):
 		self.board_cards = {}
@@ -78,6 +83,16 @@ class Client(ConnectionListener):
 			card = self.me.playCard(card_index)
 			self.board_cards[self.num] = card
 			connection.Send({"action": "play_card", "card": card.__dict__, "player": self.num})
+
+	def ask_truco(self):
+		if self.me.turn and not self.just_asked:
+			connection.Send({"action": "ask_truco", "player": self.num})
+		self.just_asked = True
+
+	def accept_truco(self):
+		if self.truco_asked:
+			connection.Send({"action": "accept_truco", "player": self.num})
+		self.truco_asked = False
 
 if __name__ == "__main__":
 	c = Client()
