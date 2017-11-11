@@ -363,7 +363,13 @@ class Game:
 
 
 print('STARTING SERVER ON LOCALHOST')
-truco_server = TrucoServer()
+address = input('Host:Port (localhost:8000): ')
+if not address:
+	host, port = 'localhost', 8000
+else:
+	host, port = address.split(':')
+truco_server = TrucoServer(localaddr=(host, int(port)))
+
 while True:
 	truco_server.tick()
 	sleep(0.01)

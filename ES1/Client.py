@@ -21,7 +21,7 @@ class Client(ConnectionListener):
 		self.team_mate_cards = []
 
 		print('conectando')
-		self.Connect()
+		self.start_connection_to_server()
 
 	def Network_startgame(self, data):
 		self.running = True
@@ -116,6 +116,21 @@ class Client(ConnectionListener):
 		if self.truco_asked:
 			connection.Send({"action": "refuse_truco", "player": self.num})
 		self.truco_asked = False
+
+	def start_connection_to_server(self):
+		address = input("Address fo server: ")
+		try:
+			if not address:
+				host, port = 'localhost', 8000
+			else:
+				host, port = address.split(':')
+			self.Connect((host, int(port)))
+		except:
+			print('Error connecting to server')
+			print('Usage:', 'host:port')
+			print('e.g.', 'localhost:31425')
+			exit()
+		print('Truco client started')
 
 if __name__ == "__main__":
 	c = Client()
