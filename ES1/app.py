@@ -80,6 +80,8 @@ class App():
 				self.screen.blit(self.image_dict[turned_card.suit + turned_card.rank], (405, 250))
 			self.screen.blit(self.faced_down_card, (325, 250))
 
+			self.button("Trucar", 625, 515, 150, 60, self.dark_grey, self.light_grey, self.truco_game.ask_truco)
+
 
 	def draw_HUD(self):
 
@@ -99,8 +101,6 @@ class App():
 
 			self.screen.blit(my_team_score, (50, 40))
 			self.screen.blit(other_team_score, (50, 70))
-
-		self.button("Trucar", 625, 515, 150, 60, self.dark_grey, self.light_grey, self.truco_game.ask_truco)
 
 	def card_button(self, x, y, width, height, color, card_image, index):
 		mouse = pygame.mouse.get_pos()
