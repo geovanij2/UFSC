@@ -57,6 +57,7 @@ class Client(ConnectionListener):
 	def Network_prepare_for_next_hand(self, data):
 		self.board_cards = {}
 		self.team_mate_cards = []
+		self.just_asked = False
 		self.turned_card = None
 		self.number_of_trucos_asked = 0
 		for card in self.me.hand:
