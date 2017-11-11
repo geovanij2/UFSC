@@ -254,7 +254,7 @@ class Game:
 					self.score_multiplier += 1
 
 			elif self.truco_asking_player == 1 or self.truco_asking_player == 3:
-				if not self.truco_response_dict[0] and not truco_response_dict[2]:
+				if not self.truco_response_dict[0] and not self.truco_response_dict[2]:
 					print("cheguei aqui")
 					self.pair2_wins()
 				else:

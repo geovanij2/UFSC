@@ -142,6 +142,7 @@ class App():
 			left_player_card = self.truco_game.get_board_card((player+3)%4)
 			my_card = self.truco_game.get_board_card(player)
 
+			self.screen.fill((0,100,0))
 			# my hand
 			for i, card in enumerate(self.truco_game.me.hand):
 				self.card_button(i*80 + 285, 494, self.card_width, self.card_height, self.light_blue, self.image_dict[card.suit + card.rank], i)
