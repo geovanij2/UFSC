@@ -115,10 +115,11 @@ class TrucoServer(PodSixNet.Server.Server):
 				else:
 					if self.game.pair1_rounds > self.game.pair2_rounds:
 						self.game.pair1_wins()
+
 					elif self.game.pair2_rounds > self.game.pair1_rounds:
 						self.game.pair2_wins()
 
-				if self.game.pair1_rounds == self.game.pair2_rounds:
+				if self.game.pair1_rounds == 1 and self.game.pair2_rounds == 1:
 					self.game.prepare_for_next_round()
 
 				if self.game.pair1_rounds == 2:
